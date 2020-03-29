@@ -1,0 +1,48 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Pipeline
+metadata:
+  name: build-deploy
+spec:
+  resources:
+    - name: git-repo
+      type: git
+    - name: image
+      type: image
+
+  tasks:
+    - name: build-image
+      taskRef:
+        name: buildah-task
+      resources:
+        inputs:
+          - name: source
+            resource: git-repo
+        outputs:
+          - name: image
+            resource: image
+      params:
+        - name: TLSVERIFY
+          value: "false"
+
+    - name: apply-manifests
+      taskRef:
+        name: apply-manifests
+      resources:
+        inputs:
+          - name: source
+            resource: git-repo
+      runAfter:
+        - build-image
+        
+    - name: update-image
+      taskRef:
+        name: update-deployment
+      resources:
+        inputs:
+          - name: image
+            resource: image
+      params:
+        - name: deployment
+          value: "simple-golang-app"
+      runAfter:
+        - apply-manifests
