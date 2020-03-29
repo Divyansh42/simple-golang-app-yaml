@@ -1,0 +1,15 @@
+apiVersion: tekton.dev/v1alpha1
+kind: TaskRun
+metadata:
+  name: apply-manifest-taskrun
+spec:
+  taskRef:
+    name: apply-manifests
+  inputs:
+    resources:
+      - name: source
+        resourceSpec:
+          type: git
+          params:
+            - name: url
+              value: https://github.com/Divyansh42/simple-golang-webserver
